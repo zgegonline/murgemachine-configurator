@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'DrinksListView.dart';
+import 'package:murgemachine_configurator/CocktailsGridView.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
           title: Text('Drinks List'),
         ),
         body: Center(
-          child: DrinksListView(),
+          child: CocktailsGridView(),
         ),
       ),
     );

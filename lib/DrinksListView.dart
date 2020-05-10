@@ -34,7 +34,7 @@ class DrinksListView extends StatelessWidget {
   Future<List<Drink>> _fetchDrinks() async {
     final drinksListAPIUrl = 'http://192.168.1.150:2636/drinks';
     final response = await http.get(drinksListAPIUrl);
-    print(response.body);
+
     if (response.statusCode == 200) {
       Map data = jsonDecode(response.body);
       List jsonResponse = data["drinks"];
