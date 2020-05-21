@@ -4,8 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-const String AVAILABLE_COCKTAILS_API_URL =
+const String API_URL_AVAILABLE_COCKTAILS =
     'http://192.168.1.150:2636/available-cocktails';
+const String API_URL_REQUEST_COCKTAIL =
+    'http://192.168.1.150:2636/request-cocktail';
 
 class Cocktail {
   final int id;
@@ -55,7 +57,14 @@ class Ingredient {
   }
 }
 
-class CocktailsGridView extends StatelessWidget {
+class CocktailsGridView extends StatefulWidget {
+  @override
+  _CocktailsGridViewState createState() => _CocktailsGridViewState();
+}
+
+enum Size { SIZE_25, SIZE_50 }
+
+class _CocktailsGridViewState extends State<CocktailsGridView> {
   Widget build(BuildContext context) {
     return FutureBuilder<List<Cocktail>>(
         future: _fetchCocktails(),
@@ -71,7 +80,7 @@ class CocktailsGridView extends StatelessWidget {
   }
 
   Future<List<Cocktail>> _fetchCocktails() async {
-    final response = await http.get(AVAILABLE_COCKTAILS_API_URL);
+    final response = await http.get(API_URL_AVAILABLE_COCKTAILS);
 
     if (response.statusCode == 200) {
       Map data = jsonDecode(response.body);
@@ -125,7 +134,46 @@ class CocktailsGridView extends StatelessWidget {
     );
   }
 
-  void _tileClicked(int id) {
+  Future _tileClicked(int id) async {
     debugPrint("Tile tapped : " + id.toString());
+    switch (await showDialog(
+        context: context,
+        child: SimpleDialog(
+          title: Text("Cocktail Preparation :" + id.toString()),
+          children: <Widget>[
+            new SimpleDialogOption(
+              child: Text("25cl"),
+              onPressed: () => Navigator.pop(context, Size.SIZE_25),
+            ),
+            new SimpleDialogOption(
+              child: Text("50cl"),
+              onPressed: () => Navigator.pop(context, Size.SIZE_50),
+            )
+          ],
+        ))) {
+      case Size.SIZE_25:
+        debugPrint(id.toString() + " -> 25cl");
+        http.Response response = await _requestCocktail(id, 25);
+        debugPrint(id.toString() + " requested" + response.body);
+        break;
+      case Size.SIZE_50:
+        debugPrint(id.toString() + " -> 50cl");
+        _requestCocktail(id, 50);
+        break;
+    }
+  }
+
+  Future<http.Response> _requestCocktail(int id, int size) async {
+    return http.post(
+      API_URL_REQUEST_COCKTAIL,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic>{
+        "cocktailId": id,
+        "size": size,
+        "light": {"color": "#ff00ff", "effect": "fixed"}
+      }),
+    );
   }
 }
